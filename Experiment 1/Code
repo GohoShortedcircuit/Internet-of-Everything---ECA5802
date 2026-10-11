@@ -1,1 +1,84 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.special import erfc
 
+distance = np.linspace(10, 1000, 100)
+
+# =====================================================
+# Common BER equation
+# BER = 0.5 * erfc(sqrt(SNR))
+# =====================================================
+
+# =====================================================
+# 1. ZIGBEE
+# =====================================================
+
+Pt = 0          # Transmit power (dBm)
+PL0 = 40        # Path loss at 1 m (dB)
+n = 3.0         # Path loss exponent
+N = -106         # Noise power (dBm)
+
+PL = PL0 + 10*n*np.log10(distance)
+Pr = Pt - PL
+SNR = Pr - N
+
+BER = 0.5 * erfc(np.sqrt(10**(SNR/10)))
+print(BER[1])
+
+plt.figure(figsize=(7,5))
+plt.semilogy(distance, BER)
+plt.xlabel("Distance (m)")
+plt.ylabel("Bit Error Rate (BER)")
+plt.title("Zigbee: BER vs Distance")
+plt.grid(True)
+plt.show()
+
+
+# =====================================================
+# 2. 6LoWPAN
+# =====================================================
+
+Pt = 0
+PL0 = 40
+n = 3.0
+N = -106
+
+PL = PL0 + 10*n*np.log10(distance)
+Pr = Pt - PL
+SNR = Pr - N
+
+BER = 0.5 * erfc(np.sqrt(10**(SNR/10)))
+print(BER[2])
+
+plt.figure(figsize=(7,5))
+plt.semilogy(distance, BER)
+plt.xlabel("Distance (m)")
+plt.ylabel("Bit Error Rate (BER)")
+plt.title("6LoWPAN: BER vs Distance")
+plt.grid(True)
+plt.show()
+
+
+# =====================================================
+# 3. NB-IoT
+# =====================================================
+
+Pt = 23
+PL0 = 31
+n = 3.5
+N = -106
+
+PL = PL0 + 10*n*np.log10(distance)
+Pr = Pt - PL
+SNR = Pr - N
+
+BER = 0.5 * erfc(np.sqrt(10**(SNR/10)))
+print(BER[40])
+
+plt.figure(figsize=(7,5))
+plt.semilogy(distance, BER)
+plt.xlabel("Distance (m)")
+plt.ylabel("Bit Error Rate (BER)")
+plt.title("NB-IoT: BER vs Distance")
+plt.grid(True)
+plt.show()
