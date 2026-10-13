@@ -1,0 +1,98 @@
+import matplotlib.pyplot as plt
+
+# Number of IoE devices
+devices = [10, 50, 100, 200, 300, 400, 500, 532, 720, 799]
+
+# 5G network parameters (assumed)
+capacity = 100                 # Mbps
+base_latency = 10              # ms
+packet_success_rate = 0.98
+energy_per_packet = 0.001      # Joules
+
+# IoE device parameters
+packet_size = 1200             # Bytes
+packets_per_second = 20
+simulation_time = 10           # Seconds
+
+# Store results
+throughput = []
+latency = []
+reliability = []
+energy_efficiency = []
+
+# Print table header for side-by-side output
+header = f"{'Devices':<8} | {'Offered Load (Mbps)':<19} | {'Throughput (Mbps)':<17} | {'Latency (ms)':<12} | {'Reliability (%)':<15} | {'Energy Eff. (Mbit/J)':<20}"
+print(header)
+print("-" * len(header))
+
+for n in devices:
+
+    # Total packets generated
+    total_packets = n * packets_per_second * simulation_time
+
+    # Offered traffic load (Mbps)
+    offered_load = (
+        n * packets_per_second * packet_size * 8 / 1e6
+    )
+
+    # Network utilization
+    utilization = offered_load / capacity
+
+    # 1. Throughput (Mbps)
+    t = min(
+        offered_load * packet_success_rate,
+        capacity
+    )
+
+    # 2. Latency (ms): increases with congestion
+    u = min(utilization, 0.95)
+    l = base_latency + 10 * u / (1 - u)
+
+    # 3. Reliability (%): decreases with congestion
+    r = 100 * packet_success_rate * max(
+        0, 1 - 0.2 * utilization
+    )
+
+    # 4. Energy efficiency (Mbit/J)
+    successful_packets = total_packets * r / 100
+
+    total_energy = (
+        total_packets
+        * energy_per_packet
+        * (1 + utilization)
+    )
+
+    e = (
+        successful_packets * packet_size * 8
+        / total_energy / 1e6
+    )
+
+    # Store values
+    throughput.append(t)
+    latency.append(l)
+    reliability.append(r)
+    energy_efficiency.append(e)
+
+    # Display results side-by-side
+    print(f"{n:<8} | {offered_load:<19.2f} | {t:<17.2f} | {l:<12.2f} | {r:<15.2f} | {e:<20.2f}")
+
+# Plot all four performance metrics
+metrics = [
+    (throughput, "Throughput (Mbps)"),
+    (latency, "Latency (ms)"),
+    (reliability, "Reliability (%)"),
+    (energy_efficiency, "Energy Efficiency (Mbit/J)")
+]
+
+fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+
+for ax, (values, title) in zip(axes.flat, metrics):
+    ax.plot(devices, values, marker="o")
+    ax.set_title(title)
+    ax.set_xlabel("Number of IoE Devices")
+    ax.set_ylabel(title)
+    ax.grid(True)
+
+plt.suptitle("5G Performance Benchmarking for IoE Applications")
+plt.tight_layout()
+plt.show()
